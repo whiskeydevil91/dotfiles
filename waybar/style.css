@@ -1,0 +1,255 @@
+/* ============================================================
+   Waybar CSS – Pill Layout (GTK CSS Compatible)
+   ------------------------------------------------------------
+   Goals:
+   - Left: Workspaces + Window title
+   - Center: Clock (prominent)
+   - Right: Updates, CPU, Memory, Audio, Network
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   GLOBAL RESET
+   ------------------------------------------------------------ */
+/* ============================================================
+      Waybar CSS — Neon Theme with Pill Layout
+      ------------------------------------------------------------
+      Cyberpunk-inspired neon aesthetic with glowing effects
+      ============================================================ */
+
+/* ------------------------------------------------------------
+      GLOBAL RESET
+      ------------------------------------------------------------ */
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "IBM Plex Mono";
+    font-size: 11px;
+    min-height: 0;
+}
+
+/* ------------------------------------------------------------
+      WAYBAR ROOT WINDOW
+      ------------------------------------------------------------ */
+window#waybar {
+    background: transparent;
+}
+
+/* ============================================================
+      LEFT SIDE — WORKSPACES + WINDOW TITLE
+      ============================================================ */
+
+/* ------------------------------------------------------------
+      WORKSPACE PILL
+      ------------------------------------------------------------ */
+#workspaces {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 10px;
+    margin-right: 8px;
+    border-radius: 999px;
+    border: 2px solid #00ffff;
+    box-shadow:
+        0 0 10px #00ffff,
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+/* Workspace buttons */
+#workspaces button {
+    padding: 0 8px;
+    color: #666666;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Active workspace - bright cyan glow */
+#workspaces button.active {
+    color: #00ffff;
+    background: rgba(0, 255, 255, 0.15);
+    text-shadow: 0 0 8px #00ffff;
+}
+
+/* Hover effect */
+#workspaces button:hover {
+    color: #00ffff;
+    background: rgba(0, 255, 255, 0.08);
+}
+
+/* ------------------------------------------------------------
+      WINDOW TITLE PILL
+      ------------------------------------------------------------ */
+#window {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 12px;
+    margin-right: 8px;
+    border-radius: 999px;
+    color: #ff00ff;
+    border: 2px solid #ff00ff;
+    box-shadow:
+        0 0 10px #ff00ff,
+        inset 0 0 10px rgba(255, 0, 255, 0.1);
+    text-shadow: 0 0 5px #ff00ff;
+}
+
+/* Hide pill when no window is focused */
+window#waybar.empty #window,
+#window.empty {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* ------------------------------------------------------------
+      UPDATES PILL (LEFT SIDE)
+      ------------------------------------------------------------ */
+#custom-updates {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    box-shadow:
+        0 0 10px #00ff00,
+        inset 0 0 10px rgba(0, 255, 0, 0.1);
+    text-shadow: 0 0 5px #00ff00;
+}
+
+/* Highlight when updates are available - bright yellow/orange */
+#custom-updates.has-updates {
+    color: #ffff00;
+    border-color: #ffff00;
+    box-shadow:
+        0 0 15px #ffff00,
+        inset 0 0 10px rgba(255, 255, 0, 0.1);
+    text-shadow: 0 0 8px #ffff00;
+}
+
+/* ============================================================
+      CENTER — CLOCK (PRIMARY FOCAL POINT)
+      ============================================================ */
+
+/* ------------------------------------------------------------
+      CLOCK PILL - Brightest neon element
+      ------------------------------------------------------------ */
+#clock {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #00ffff;
+    border: 3px solid #00ffff;
+    box-shadow:
+        0 0 20px #00ffff,
+        0 0 40px rgba(0, 255, 255, 0.3),
+        inset 0 0 15px rgba(0, 255, 255, 0.2);
+    text-shadow:
+        0 0 10px #00ffff,
+        0 0 20px #00ffff;
+}
+
+/* ============================================================
+      RIGHT SIDE — SYSTEM STATS
+      ============================================================ */
+
+/* ------------------------------------------------------------
+      GPU - Red/Orange neon
+      ------------------------------------------------------------ */
+#custom-gpu {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 12px;
+    margin-left: 8px;
+    border-radius: 999px;
+    color: #ff3366;
+    border: 2px solid #ff3366;
+    box-shadow:
+        0 0 10px #ff3366,
+        inset 0 0 10px rgba(255, 51, 102, 0.1);
+    text-shadow: 0 0 5px #ff3366;
+}
+
+/* ------------------------------------------------------------
+      CPU - Orange neon
+      ------------------------------------------------------------ */
+#custom-cpu {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 12px;
+    margin-left: 8px;
+    border-radius: 999px;
+    color: #ff6600;
+    border: 2px solid #ff6600;
+    box-shadow:
+        0 0 10px #ff6600,
+        inset 0 0 10px rgba(255, 102, 0, 0.1);
+    text-shadow: 0 0 5px #ff6600;
+}
+
+/* ------------------------------------------------------------
+      Memory - Purple neon
+      ------------------------------------------------------------ */
+#custom-memory {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 12px;
+    margin-left: 8px;
+    border-radius: 999px;
+    color: #9d00ff;
+    border: 2px solid #9d00ff;
+    box-shadow:
+        0 0 10px #9d00ff,
+        inset 0 0 10px rgba(157, 0, 255, 0.1);
+    text-shadow: 0 0 5px #9d00ff;
+}
+
+/* ------------------------------------------------------------
+      Audio - Blue neon
+      ------------------------------------------------------------ */
+#pulseaudio {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 12px;
+    margin-left: 8px;
+    border-radius: 999px;
+    color: #0099ff;
+    border: 2px solid #0099ff;
+    box-shadow:
+        0 0 10px #0099ff,
+        inset 0 0 10px rgba(0, 153, 255, 0.1);
+    text-shadow: 0 0 5px #0099ff;
+}
+
+/* Muted state - dim red */
+#pulseaudio.muted {
+    color: #ff0000;
+    border-color: #ff0000;
+    box-shadow:
+        0 0 5px #ff0000,
+        inset 0 0 5px rgba(255, 0, 0, 0.1);
+    text-shadow: 0 0 3px #ff0000;
+}
+
+/* ------------------------------------------------------------
+      Network - Green neon
+      ------------------------------------------------------------ */
+#network {
+    background: rgba(10, 10, 20, 0.95);
+    padding: 6px 12px;
+    margin-left: 8px;
+    border-radius: 999px;
+    color: #00ff00;
+    border: 2px solid #00ff00;
+    box-shadow:
+        0 0 10px #00ff00,
+        inset 0 0 10px rgba(0, 255, 0, 0.1);
+    text-shadow: 0 0 5px #00ff00;
+}
+
+/* Disconnected state - dim red */
+#network.disconnected {
+    color: #ff0000;
+    border-color: #ff0000;
+    box-shadow:
+        0 0 5px #ff0000,
+        inset 0 0 5px rgba(255, 0, 0, 0.1);
+    text-shadow: 0 0 3px #ff0000;
+}
