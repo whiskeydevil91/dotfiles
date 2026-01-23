@@ -9,22 +9,9 @@
 
 *A cyberpunk-inspired Hyprland rice with neon aesthetics and smooth animations*
 
-[Screenshots](#-screenshots) • [Features](#-features) • [Installation](#-installation) • [Keybindings](#%EF%B8%8F-keybindings) • [Customization](#-customization)
+• [Features](#-features) • [Installation](#-installation) • [Keybindings](#%EF%B8%8F-keybindings) • [Customization](#-customization)
 
 </div>
-
----
-
-## 📸 Screenshots
-
-![Desktop Screenshot](screenshots/desktop.png)
-*Main desktop with Waybar and neon theme*
-
-![Workspaces](screenshots/workspaces.png)
-*Multiple workspace setup*
-
-![SDDM Login](screenshots/sddm.png)
-*Sugar Candy SDDM theme*
 
 ---
 
