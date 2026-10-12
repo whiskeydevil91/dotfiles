@@ -60,6 +60,25 @@ hl.window_rule({
     center = true,
 })
 
+-- ─── Blender ────────────────────────────────────────────────────────────────
+hl.window_rule({
+    -- Solid, undimmed viewport so colors in renders look right
+    name    = "blender-solid",
+    match   = { class = "^(blender)$" },
+    opacity = "1.0 override 1.0 override 1.0 override",
+    no_blur = true,
+    no_dim  = true,
+})
+
+hl.window_rule({
+    -- Preferences, render result and file browser float instead of tiling
+    name   = "blender-popups",
+    match  = { class = "^(blender)$", title = "^(Blender (Preferences|Render|File View).*)$" },
+    float  = true,
+    center = true,
+    size   = { "monitor_w*0.6", "monitor_h*0.7" },
+})
+
 -- ─── Monitor assignments ────────────────────────────────────────────────────
 hl.window_rule({
     -- Discord opens on the top monitor

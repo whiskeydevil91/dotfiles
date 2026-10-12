@@ -45,6 +45,17 @@ ttf-ibm-plex
 ttf-nerd-fonts-symbols
 nordic-darker-theme
 
+# Gaming (32-bit packages need the multilib repo, which install.sh enables)
+steam
+gamemode
+lib32-gamemode
+mangohud
+lib32-mangohud
+gamescope
+
+# 3D art
+blender
+
 # Apps used by keybindings
 zen-browser-bin
 zed

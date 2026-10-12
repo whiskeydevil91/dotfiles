@@ -20,6 +20,7 @@ require("config.input")
 require("config.autostart")
 require("config.keybindings")
 require("config.window-rules")
+require("config.gaming")
 
 -- Written by scripts/nvidia.sh on NVIDIA systems; skipped when absent
 pcall(require, "config.nvidia")

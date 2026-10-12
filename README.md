@@ -47,6 +47,24 @@
 
 Fullscreen windows (games, videos) pause the timer. Edit the timeouts in `hypr/hypridle.conf`.
 
+### 🎮 **Gaming (Steam)**
+- Steam games are fully solid: no transparency, blur, shadow or dimming
+- Screen tearing allowed for games, for lower input lag
+- VRR (FreeSync / G-Sync) on fullscreen windows
+- Games open on workspace 5, on the main monitor
+- **`SUPER + G` game mode** turns off animations, blur, gaps and transparency everywhere; press again to restore
+- Installs `steam`, `gamemode`, `mangohud` and `gamescope`, and enables the multilib repo
+
+In Steam, right-click a game → **Properties** → **Launch Options** and paste:
+
+```
+gamemoderun mangohud %command%
+```
+
+### 🧊 **3D Art**
+- Blender is fully solid with no dimming, so colors look right
+- Blender's preferences, render and file-browser windows float instead of tiling
+
 ---
 
 ## 🎨 Color Palette
@@ -80,7 +98,8 @@ dotfiles/
 │   │   ├── input.lua
 │   │   ├── autostart.lua
 │   │   ├── keybindings.lua
-│   │   └── window-rules.lua
+│   │   ├── window-rules.lua
+│   │   └── gaming.lua        # Steam rules, tearing, VRR, game mode
 │   ├── hypridle.conf         # Sleep timer
 │   ├── hyprlock.conf         # Lock screen
 │   └── scripts/
@@ -144,6 +163,7 @@ Press **`SUPER + /`** (or `SUPER + F1`) to see every keybinding. The list is rea
 | `SUPER + F` | Toggle floating |
 | `ALT + F` | Toggle fullscreen |
 | `SUPER + ALT + SPACE` | Switch master / dwindle layout |
+| `SUPER + G` | Toggle game mode |
 | `SUPER + L` | Lock screen |
 | `SUPER + DELETE` | Exit Hyprland |
 | `SUPER + ←/↓/↑/→` | Move focus |

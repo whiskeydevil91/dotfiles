@@ -83,6 +83,18 @@ install_paru() {
     print_success "paru installed"
 }
 
+enable_multilib() {
+    # Steam and the 32-bit gaming/NVIDIA libraries live in [multilib]
+    if grep -q '^\[multilib\]' /etc/pacman.conf; then
+        return
+    fi
+
+    print_info "Enabling the multilib repository (needed for Steam)..."
+    sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
+    sudo pacman -Syu --noconfirm
+    print_success "multilib enabled"
+}
+
 install_packages() {
     print_info "Installing packages from packages.txt..."
 
@@ -159,6 +171,11 @@ setup_user() {
     fi
 
     fc-cache -f >/dev/null || true
+
+    # gamemode needs the user in its group to raise game priority
+    if getent group gamemode >/dev/null; then
+        sudo usermod -aG gamemode "$USER"
+    fi
 }
 
 # ------------------------------------------------------------
@@ -200,6 +217,7 @@ main() {
         exit 1
     fi
 
+    enable_multilib
     install_paru
     install_packages
     install_configs
