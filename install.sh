@@ -125,6 +125,11 @@ install_packages() {
 # ------------------------------------------------------------
 # GPU drivers
 # ------------------------------------------------------------
+# version_at_least 6.15 6.14 → true when the first version is >= the second
+version_at_least() {
+    [[ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n 1)" == "$2" ]]
+}
+
 detect_gpu() {
     local gpus
     gpus="$(lspci 2>/dev/null | grep -Ei 'vga|3d|display' || true)"
@@ -141,17 +146,31 @@ detect_gpu() {
 install_amd_drivers() {
     print_info "AMD GPU detected, installing Mesa and Vulkan drivers..."
 
-    # Installed before Steam so it doesn't pick a different Vulkan driver
+    # Installed before Steam so it doesn't pick a different Vulkan driver.
+    # linux-firmware carries the GPU firmware newer Radeons need to boot.
     sudo pacman -S --needed --noconfirm \
+        linux-firmware \
         mesa lib32-mesa \
         vulkan-radeon lib32-vulkan-radeon \
         vulkan-icd-loader lib32-vulkan-icd-loader
     print_success "AMD drivers installed"
 
+    # Radeon RX 9000 (RDNA 4) cards need kernel 6.14+ and Mesa 25.1+
+    local kernel mesa
+    kernel="$(uname -r | cut -d. -f1,2)"
+    mesa="$(pacman -Q mesa | awk '{print $2}' | cut -d. -f1,2)"
+    if ! version_at_least "$kernel" 6.14; then
+        print_warning "Kernel $kernel is older than 6.14; RX 9000 cards may not work. Reboot after updating."
+    fi
+    if ! version_at_least "$mesa" 25.1; then
+        print_warning "Mesa $mesa is older than 25.1; games may run poorly on RX 9000 cards."
+    fi
+
     echo
     if ask "Enable AMD GPU rendering in Blender (HIP, about 2 GB download)?"; then
         sudo pacman -S --needed --noconfirm hip-runtime-amd
         print_success "HIP installed: pick it in Blender → Preferences → System → Cycles Render Devices"
+        print_info "If your card isn't listed there, EEVEE still renders on the GPU; Cycles falls back to the CPU."
     fi
 }
 
