@@ -49,6 +49,7 @@ Fullscreen windows (games, videos) pause the timer. Edit the timeouts in `hypr/h
 
 ### 📊 **System Monitor in Waybar**
 - **CPU** and **GPU** pills show live usage and temperature (e.g. `23% 54°C`)
+- CPU tooltip shows the Ryzen core-die (CCD) temperature too
 - Pills turn hot pink when running hot: GPU at 80°C edge or within 10°C of its throttle point, CPU at 90°C
 - Click the GPU pill for `nvtop`, or the CPU/memory pill for `btop`
 - **Memory** pill shows RAM in use
@@ -152,10 +153,11 @@ The installer:
 3. Copies the new configs into `~/.config`
 4. Installs the wallpaper to `~/Pictures/Wallpapers/default.png`
 5. Links `~/hyprdots` to the repo, where Waybar's scripts live
-6. Detects your GPU:
+6. Installs CPU microcode (`amd-ucode` or `intel-ucode`)
+7. Detects your GPU:
    - **AMD**: installs Mesa and the Vulkan drivers (64- and 32-bit, for Steam), and offers HIP so Blender can render on the GPU
    - **NVIDIA**: offers `scripts/nvidia.sh`
-7. Asks whether to install the neon SDDM login screen
+8. Asks whether to install the neon SDDM login screen
 
 Then reboot and pick **Hyprland** on the login screen.
 

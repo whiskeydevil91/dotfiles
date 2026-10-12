@@ -36,14 +36,23 @@ echo "$IDLE $TOTAL" > "$STATE_FILE"
 # Temperature: AMD (k10temp) or Intel (coretemp) via sysfs
 # ------------------------------------------------------------
 TEMP=""
+CCD_TEMPS=""
 for hwmon in /sys/class/hwmon/hwmon*; do
     case "$(cat "$hwmon/name" 2>/dev/null)" in
         k10temp|coretemp|zenpower)
             # temp1 is Tctl (AMD) or Package (Intel)
             if [[ -f "$hwmon/temp1_input" ]]; then
                 TEMP=$(( $(cat "$hwmon/temp1_input") / 1000 ))
-                break
             fi
+            # Ryzen also reports each core die (CCD) as Tccd1, Tccd2, …
+            for label in "$hwmon"/temp*_label; do
+                [[ -f "$label" ]] || continue
+                name=$(cat "$label")
+                [[ "$name" == Tccd* ]] || continue
+                CCD_TEMPS+="
+CCD ${name#Tccd}:       $(( $(cat "${label%_label}_input") / 1000 ))°C"
+            done
+            [[ -n "$TEMP" ]] && break
             ;;
     esac
 done
@@ -63,10 +72,13 @@ if [[ -n "$TEMP" ]]; then
     [[ $TEMP -ge $HOT_TEMP ]] && CLASS="hot"
 fi
 
+TEMP_SHOWN="n/a"
+[[ -n "$TEMP" ]] && TEMP_SHOWN="${TEMP}°C"
+
 TOOLTIP="${MODEL}
 ━━━━━━━━━━━━━━━━━━━━
 Usage:       ${USAGE}%
-Temperature: ${TEMP:-n/a}°C
+Temperature: ${TEMP_SHOWN}${CCD_TEMPS}
 Clock:       ${FREQ:-n/a} GHz
 Load:        ${LOAD}
 

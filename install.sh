@@ -130,6 +130,21 @@ version_at_least() {
     [[ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n 1)" == "$2" ]]
 }
 
+# CPU microcode: security and stability fixes the CPU loads at boot.
+# Arch's default mkinitcpio "microcode" hook picks it up automatically.
+install_microcode() {
+    local pkg=""
+    case "$(awk -F': ' '/vendor_id/ {print $2; exit}' /proc/cpuinfo)" in
+        AuthenticAMD) pkg=amd-ucode ;;
+        GenuineIntel) pkg=intel-ucode ;;
+    esac
+    [[ -n "$pkg" ]] || return 0
+
+    print_info "Installing CPU microcode ($pkg)..."
+    sudo pacman -S --needed --noconfirm "$pkg"
+    print_success "Microcode installed (active after reboot)"
+}
+
 detect_gpu() {
     local gpus
     gpus="$(lspci 2>/dev/null | grep -Ei 'vga|3d|display' || true)"
@@ -273,6 +288,7 @@ main() {
 
     enable_multilib
     sudo pacman -S --needed --noconfirm pciutils
+    install_microcode
 
     local gpu
     gpu="$(detect_gpu)"
