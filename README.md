@@ -47,6 +47,13 @@
 
 Fullscreen windows (games, videos) pause the timer. Edit the timeouts in `hypr/hypridle.conf`.
 
+### 📊 **System Monitor in Waybar**
+- **CPU** and **GPU** pills show live usage and temperature (e.g. `23% 54°C`)
+- Pills turn hot pink at 80°C or above
+- **Memory** pill shows RAM in use
+- **Updates** pill shows how many updates are waiting (✓ when up to date); click it to update
+- Hover any pill for details: clock speed, VRAM, power draw, top processes
+
 ### 🎮 **Gaming (Steam)**
 - Steam games are fully solid: no transparency, blur, shadow or dimming
 - Screen tearing allowed for games, for lower input lag

@@ -187,6 +187,19 @@ window#waybar.empty #window,
 }
 
 /* ------------------------------------------------------------
+      Running hot (80°C+) - CPU and GPU pills flash pink
+      ------------------------------------------------------------ */
+#custom-cpu.hot,
+#custom-gpu.hot {
+    color: @alert;
+    border-color: @alert;
+    box-shadow:
+        0 0 18px @alert,
+        inset 0 0 12px alpha(@alert, 0.2);
+    text-shadow: 0 0 8px @alert;
+}
+
+/* ------------------------------------------------------------
       Memory - Blue neon
       ------------------------------------------------------------ */
 #custom-memory {

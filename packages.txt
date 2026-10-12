@@ -26,6 +26,7 @@ wl-clipboard
 cliphist
 libnotify
 jq
+pacman-contrib
 brightnessctl
 playerctl
 pipewire
