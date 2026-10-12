@@ -66,7 +66,9 @@ dotfiles/
 ├── hypr/               # Hyprland configuration
 │   ├── hyprland.conf   # Main config
 │   ├── aesthetics.conf # Visual settings
-│   └── environment.conf# Environment variables
+│   ├── environment.conf# Environment variables
+│   └── scripts/
+│       └── wallpaper.sh# Sets the wallpaper (swaybg)
 ├── waybar/             # Waybar configuration
 │   ├── config.json     # Bar layout & modules
 │   └── style.css       # Neon pill theme
@@ -82,6 +84,8 @@ dotfiles/
 │       ├── gpu.sh
 │       ├── memory.sh
 │       └── updates.sh
+├── wallpapers/         # Default wallpaper
+│   └── default.png
 ├── screenshots/        # Rice screenshots
 ├── install.sh          # Automated installer
 └── README.md           # This file
@@ -292,12 +296,15 @@ decoration {
 
 ### Changing Wallpaper
 
-```bash
-# Add your wallpaper
-cp /path/to/wallpaper.png ~/.config/hypr/
+The installer copies `wallpapers/default.png` to `~/Pictures/Wallpapers/default.png`,
+and `~/.config/hypr/scripts/wallpaper.sh` sets it on every monitor at startup.
 
-# Edit hyprland.conf
-exec-once = swaybg -i ~/.config/hypr/wallpaper.png
+```bash
+# Switch to a different image
+~/.config/hypr/scripts/wallpaper.sh /path/to/wallpaper.png
+
+# Or make it the new default
+cp /path/to/wallpaper.png ~/Pictures/Wallpapers/default.png
 ```
 
 ### SDDM Theme Colors

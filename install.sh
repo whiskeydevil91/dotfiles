@@ -92,6 +92,7 @@ install_packages() {
         grim              # Screenshots
         slurp             # Region select
         wl-clipboard      # Clipboard
+        swaybg            # Wallpaper
         pavucontrol       # Audio control
         network-manager-applet  # Network
         polkit-kde-agent  # Authentication
@@ -131,6 +132,15 @@ install_dotfiles() {
         print_success "Hyprland config installed"
     else
         print_warning "Hyprland config not found in dotfiles"
+    fi
+    
+    # Install default wallpaper
+    if [ -f "$DOTFILES_DIR/wallpapers/default.png" ]; then
+        mkdir -p "$HOME/Pictures/Wallpapers"
+        cp "$DOTFILES_DIR/wallpapers/default.png" "$HOME/Pictures/Wallpapers/default.png"
+        print_success "Default wallpaper installed"
+    else
+        print_warning "Default wallpaper not found in dotfiles"
     fi
     
     # Copy Waybar config
