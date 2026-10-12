@@ -51,13 +51,18 @@ Fullscreen windows (games, videos) pause the timer. Edit the timeouts in `hypr/h
 
 ## 🎨 Color Palette
 
+Sampled from the wallpaper. Waybar defines these once at the top of `waybar/style.css`.
+
 | Element | Hex Code |
 |---------|----------|
-| **Cyan** (Primary) | `#00e5ff` |
-| **Magenta** (Borders) | `#ff00ff` |
-| **Pink** (Accent) | `#ff2bd6` |
-| **Purple** | `#8b008b` |
-| **Background** | `#0b0014` |
+| **Cyan** (workspaces, clock, network) | `#31e4f6` |
+| **Sky blue** (updates, audio) | `#1ab9ef` |
+| **Blue** (memory) | `#3d7bff` |
+| **Violet** (CPU) | `#8f5bff` |
+| **Purple** (GPU) | `#b44cff` |
+| **Pink** (window title, alerts) | `#ff2bd6` |
+| **Magenta** (window borders) | `#ff00ff` |
+| **Background** | `#030310` |
 
 ---
 
@@ -214,7 +219,7 @@ sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/neon
 
 ### Waybar Colors
 
-Edit `~/.config/waybar/style.css`.
+Edit the `@define-color` lines at the top of `~/.config/waybar/style.css`, then restart Waybar.
 
 ---
 
