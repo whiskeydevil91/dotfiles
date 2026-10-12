@@ -36,6 +36,13 @@ hl.window_rule({
     float = true,
 })
 
+hl.window_rule({
+    -- Don't start the sleep timer while a game or video is fullscreen
+    name         = "idle-inhibit-fullscreen",
+    match        = { class = ".*" },
+    idle_inhibit = "fullscreen",
+})
+
 -- ─── Steam ──────────────────────────────────────────────────────────────────
 hl.window_rule({
     name   = "steam-size",
