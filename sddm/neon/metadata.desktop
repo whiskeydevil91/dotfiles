@@ -1,0 +1,13 @@
+[SddmGreeterTheme]
+Name=Neon
+Description=Neon login screen for the Hyprland dotfiles
+Author=whiskeydevil91
+Type=sddm-theme
+Version=1.0
+Website=https://github.com/whiskeydevil91/dotfiles
+Screenshot=background.png
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=neon
+Theme-API=2.0
+QtVersion=6
