@@ -29,6 +29,7 @@ jq
 pacman-contrib
 btop
 nvtop
+fastfetch
 brightnessctl
 playerctl
 pipewire

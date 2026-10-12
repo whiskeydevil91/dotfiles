@@ -147,4 +147,13 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 # ===============================
 # Fastfetch (interactive only)
 # ===============================
-[[ $- == *i* ]] && fastfetch
+# Shows the neon dog as a small logo in the top-left corner of a new terminal
+# (kitty graphics protocol). Falls back to the normal logo if the image is missing.
+if [[ $- == *i* ]]; then
+  if [[ -f ~/.config/kitty/terminal-logo.png ]]; then
+    fastfetch --logo ~/.config/kitty/terminal-logo.png --logo-type kitty-direct \
+      --logo-width 28 --logo-height 14 --logo-padding-right 2
+  else
+    fastfetch
+  fi
+fi
