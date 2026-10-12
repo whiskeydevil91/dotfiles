@@ -49,11 +49,13 @@ Fullscreen windows (games, videos) pause the timer. Edit the timeouts in `hypr/h
 
 ### 📊 **System Monitor in Waybar**
 - **CPU** and **GPU** pills show live usage and temperature (e.g. `23% 54°C`)
-- Pills turn hot pink at 80°C or above
+- Pills turn hot pink when running hot: GPU at 80°C edge or within 10°C of its throttle point, CPU at 90°C
+- Click the GPU pill for `nvtop`, or the CPU/memory pill for `btop`
 - **Memory** pill shows RAM in use
 - **Updates** pill shows how many updates are waiting (✓ when up to date); click it to update
 - Hover any pill for details: clock speed, VRAM, power draw, top processes
-- Works with AMD (edge + junction temps) and NVIDIA cards
+- Works with AMD (edge, hotspot and VRAM temps, fan speed, power limit) and NVIDIA cards
+- On Ryzen systems it reads the graphics card, not the CPU's built-in graphics
 
 ### 🎮 **Gaming (Steam)**
 - Steam games are fully solid: no transparency, blur, shadow or dimming

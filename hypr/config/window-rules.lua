@@ -43,6 +43,15 @@ hl.window_rule({
     idle_inhibit = "fullscreen",
 })
 
+hl.window_rule({
+    -- System monitors opened from Waybar float in the middle of the screen
+    name   = "monitor-popups",
+    match  = { class = "^(kitty)$", title = "^(btop|nvtop)$" },
+    float  = true,
+    center = true,
+    size   = { "monitor_w * 0.6", "monitor_h * 0.6" },
+})
+
 -- ─── Steam ──────────────────────────────────────────────────────────────────
 hl.window_rule({
     name   = "steam-size",

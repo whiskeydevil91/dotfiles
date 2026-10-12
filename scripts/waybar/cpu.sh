@@ -4,12 +4,14 @@
 # cpu.sh
 # Waybar module: current CPU usage and temperature.
 # Bar text:  23% 54°C
-# Class "hot" at 80°C or above (pill turns pink).
+# Class "hot" at 90°C or above (pill turns pink). Modern Ryzen
+# and Intel CPUs run up to ~95°C under load by design, so lower
+# thresholds would flag normal gaming.
 # ------------------------------------------------------------
 
 set -euo pipefail
 
-HOT_TEMP=80
+HOT_TEMP=90
 STATE_FILE="${XDG_RUNTIME_DIR:-/tmp}/waybar-cpu.stat"
 
 # ------------------------------------------------------------
@@ -69,7 +71,9 @@ Clock:       ${FREQ:-n/a} GHz
 Load:        ${LOAD}
 
 Top processes
-${TOP}"
+${TOP}
+
+Click to open btop"
 
 jq -nc --arg text "$TEXT" --arg tooltip "$TOOLTIP" --arg class "$CLASS" \
     '{text: $text, tooltip: $tooltip, class: $class}'

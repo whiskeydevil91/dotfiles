@@ -27,6 +27,8 @@ cliphist
 libnotify
 jq
 pacman-contrib
+btop
+nvtop
 brightnessctl
 playerctl
 pipewire
