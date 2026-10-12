@@ -160,4 +160,4 @@ fi
 
 echo
 echo "==> Update complete!"
-echo "The update counter will refresh within 5 minutes."
+echo "The update counter on Waybar has been refreshed."

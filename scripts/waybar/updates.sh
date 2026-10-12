@@ -119,7 +119,7 @@ fi
 if [[ $TOTAL -gt 0 ]]; then
     OUTPUT="{\"text\":\"$TOTAL\",\"tooltip\":\"$TOOLTIP\",\"class\":\"has-updates\"}"
 else
-    OUTPUT="{\"text\":\"0\",\"tooltip\":\"$TOOLTIP\",\"class\":\"up-to-date\"}"
+    OUTPUT="{\"text\":\"✓\",\"tooltip\":\"$TOOLTIP\",\"class\":\"up-to-date\"}"
 fi
 
 # ------------------------------------------------------------

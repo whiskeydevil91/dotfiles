@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Hyprland](https://img.shields.io/badge/Hyprland-Dynamic?style=for-the-badge&logo=wayland&logoColor=white&color=00ffff)
+![Hyprland](https://img.shields.io/badge/Hyprland-0.55+_Lua-Dynamic?style=for-the-badge&logo=wayland&logoColor=white&color=00ffff)
 ![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-badge&logo=arch-linux&logoColor=white)
 ![Waybar](https://img.shields.io/badge/Waybar-Custom-ff00ff?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-00ff00?style=for-the-badge)
@@ -11,6 +11,8 @@
 
 • [Features](#-features) • [Installation](#-installation) • [Keybindings](#%EF%B8%8F-keybindings) • [Customization](#-customization)
 
+![Desktop wallpaper](wallpapers/default.png)
+
 </div>
 
 ---
@@ -18,44 +20,78 @@
 ## ✨ Features
 
 ### 🎨 **Neon Aesthetic**
-- Cyberpunk-inspired color scheme with glowing borders
-- Custom neon pill-style Waybar with gradient effects
-- Smooth animations with custom bezier curves
-- Semi-transparent windows with blur effects
+- Cyberpunk-inspired color scheme with glowing magenta borders
+- Custom neon pill-style Waybar
+- Neon login screen (SDDM) and lock screen (hyprlock)
+- Smooth animations, blur and semi-transparent windows
 
 ### 🖥️ **Components**
-- **Window Manager**: Hyprland (master layout)
+- **Window Manager**: Hyprland, configured in **Lua** (master layout)
 - **Status Bar**: Waybar (custom neon theme)
-- **Terminal**: Kitty with truecolor support
+- **Terminal**: Kitty
 - **Shell**: Zsh with Spaceship prompt
-- **Display Manager**: SDDM with Sugar Candy theme
+- **Login Screen**: SDDM with the custom `neon` theme
+- **Lock Screen**: hyprlock
+- **Sleep Timer**: hypridle
+- **Wallpaper**: swaybg
 - **Font**: IBM Plex Mono
 
-### 🎯 **Workflow Optimized**
-- Master layout for focused work
-- Smart gaps and borders
-- Custom workspace assignments per monitor
-- System monitoring (GPU, CPU, Memory, Network)
+### 💤 **Sleep Timer**
 
-### 🌟 **Visual Effects**
-- Rounded corners (10px radius)
-- Active/inactive window transparency
-- Drop shadows with custom blur
-- Border animations with easing curves
-- Neon glow effects on UI elements
+| Idle for | What happens |
+|----------|--------------|
+| 9 min  | Notification: locking in 1 minute |
+| 10 min | Lock screen |
+| 11 min | Monitors off |
+| 30 min | Suspend |
+
+Fullscreen windows (games, videos) pause the timer. Edit the timeouts in `hypr/hypridle.conf`.
+
+### 📊 **System Monitor in Waybar**
+- **CPU** and **GPU** pills show live usage and temperature (e.g. `23% 54°C`)
+- CPU tooltip shows the Ryzen core-die (CCD) temperature too
+- Pills turn hot pink when running hot: GPU at 80°C edge or within 10°C of its throttle point, CPU at 90°C
+- Click the GPU pill for `nvtop`, or the CPU/memory pill for `btop`
+- **Memory** pill shows RAM in use
+- **Updates** pill shows how many updates are waiting (✓ when up to date); click it to update
+- Hover any pill for details: clock speed, VRAM, power draw, top processes
+- Works with AMD (edge, hotspot and VRAM temps, fan speed, power limit) and NVIDIA cards
+- On Ryzen systems it reads the graphics card, not the CPU's built-in graphics
+
+### 🎮 **Gaming (Steam)**
+- Steam games are fully solid: no transparency, blur, shadow or dimming
+- Screen tearing allowed for games, for lower input lag
+- VRR (FreeSync / G-Sync) on fullscreen windows
+- Games open on workspace 5, on the main monitor
+- **`SUPER + G` game mode** turns off animations, blur, gaps and transparency everywhere; press again to restore
+- Installs `steam`, `gamemode`, `mangohud` and `gamescope`, and enables the multilib repo
+
+In Steam, right-click a game → **Properties** → **Launch Options** and paste:
+
+```
+gamemoderun mangohud %command%
+```
+
+### 🧊 **3D Art**
+- Blender is fully solid with no dimming, so colors look right
+- Blender's preferences, render and file-browser windows float instead of tiling
 
 ---
 
 ## 🎨 Color Palette
 
-| Element | Color | Hex Code |
-|---------|-------|----------|
-| **Cyan** (Primary) | ![#00ffff](https://via.placeholder.com/15/00ffff/00ffff.png) | `#00ffff` |
-| **Magenta** (Accent) | ![#ff00ff](https://via.placeholder.com/15/ff00ff/ff00ff.png) | `#ff00ff` |
-| **Purple** | ![#9d00ff](https://via.placeholder.com/15/9d00ff/9d00ff.png) | `#9d00ff` |
-| **Green** | ![#00ff00](https://via.placeholder.com/15/00ff00/00ff00.png) | `#00ff00` |
-| **Orange** | ![#ff6600](https://via.placeholder.com/15/ff6600/ff6600.png) | `#ff6600` |
-| **Background** | ![#0a0a14](https://via.placeholder.com/15/0a0a14/0a0a14.png) | `#0a0a14` |
+Sampled from the wallpaper. Waybar defines these once at the top of `waybar/style.css`.
+
+| Element | Hex Code |
+|---------|----------|
+| **Cyan** (workspaces, clock, network) | `#31e4f6` |
+| **Sky blue** (updates, audio) | `#1ab9ef` |
+| **Blue** (memory) | `#3d7bff` |
+| **Violet** (CPU) | `#8f5bff` |
+| **Purple** (GPU) | `#b44cff` |
+| **Pink** (window title, alerts) | `#ff2bd6` |
+| **Magenta** (window borders) | `#ff00ff` |
+| **Background** | `#030310` |
 
 ---
 
@@ -63,28 +99,35 @@
 
 ```
 dotfiles/
-├── hypr/               # Hyprland configuration
-│   ├── hyprland.conf   # Main config
-│   ├── aesthetics.conf # Visual settings
-│   └── environment.conf# Environment variables
-├── waybar/             # Waybar configuration
-│   ├── config.json     # Bar layout & modules
-│   └── style.css       # Neon pill theme
-├── kitty/              # Kitty terminal config
-│   └── kitty.conf      # Terminal settings
-├── zsh/                # Zsh configuration
-│   └── .zshrc          # Shell config with Frost theme
-├── sddm/               # SDDM theme config
-│   └── theme.conf      # Sugar Candy customization
-├── scripts/            # Custom scripts
-│   └── waybar/         # Waybar module scripts
-│       ├── cpu.sh
-│       ├── gpu.sh
-│       ├── memory.sh
-│       └── updates.sh
-├── screenshots/        # Rice screenshots
-├── install.sh          # Automated installer
-└── README.md           # This file
+├── hypr/
+│   ├── hyprland.lua          # Entry point, loads config/*
+│   ├── config/
+│   │   ├── variables.lua     # Programs and mainMod
+│   │   ├── monitors.lua
+│   │   ├── environment.lua
+│   │   ├── aesthetics.lua    # Gaps, borders, blur, animations, layouts
+│   │   ├── input.lua
+│   │   ├── autostart.lua
+│   │   ├── keybindings.lua
+│   │   ├── window-rules.lua
+│   │   └── gaming.lua        # Steam rules, tearing, VRR, game mode
+│   ├── hypridle.conf         # Sleep timer
+│   ├── hyprlock.conf         # Lock screen
+│   └── scripts/
+│       ├── wallpaper.sh      # Sets the wallpaper (swaybg)
+│       └── show-keybindings.sh
+├── waybar/                   # Bar layout and neon style
+├── kitty/                    # Terminal config
+├── sddm/neon/                # Neon login screen theme
+├── wallpapers/default.png    # Default desktop wallpaper
+├── scripts/
+│   ├── install-sddm.sh       # Installs the neon login screen
+│   ├── nvidia.sh             # NVIDIA drivers + Hyprland env (NVIDIA only)
+│   ├── update.sh             # Pulls this repo and updates packages
+│   └── waybar/               # Waybar module scripts
+├── packages.txt              # Everything install.sh installs
+├── install.sh                # The installer
+└── .zshrc
 ```
 
 ---
@@ -92,315 +135,156 @@ dotfiles/
 ## 🚀 Installation
 
 ### Prerequisites
+- Arch Linux (or an Arch-based distro)
+- Hyprland **0.55 or newer** (the config is Lua)
+- A normal user with sudo
 
-- **OS**: Arch Linux or Arch-based distribution
-- **Display**: Wayland-compatible GPU
-- **Space**: ~500MB for packages
-
-### Quick Install
+### Install
 
 ```bash
-# Clone the repository
 git clone https://github.com/whiskeydevil91/dotfiles.git ~/dotfiles
-
-# Run the automated installer
 cd ~/dotfiles
-chmod +x install.sh
 ./install.sh
 ```
 
-The installer will:
-- ✅ Backup your existing configurations
-- ✅ Install all required packages (Hyprland, Waybar, etc.)
-- ✅ Copy dotfiles to correct locations
-- ✅ Configure SDDM with neon theme
-- ✅ Set up Zsh with plugins
-- ✅ Make scripts executable
+The installer:
+1. Installs everything in `packages.txt` with `paru` (installs paru first if needed)
+2. Moves your existing `hypr`, `waybar`, `kitty` configs and `.zshrc` to `~/.config-backup-<date>`
+3. Copies the new configs into `~/.config`
+4. Installs the wallpaper to `~/Pictures/Wallpapers/default.png`
+5. Links `~/hyprdots` to the repo, where Waybar's scripts live
+6. Installs CPU microcode (`amd-ucode` or `intel-ucode`)
+7. Detects your GPU:
+   - **AMD**: installs Mesa and the Vulkan drivers (64- and 32-bit, for Steam), and offers HIP so Blender can render on the GPU
+   - **NVIDIA**: offers `scripts/nvidia.sh`
+8. Asks whether to install the neon SDDM login screen
 
-### Manual Installation
-
-<details>
-<summary>Click to expand manual installation steps</summary>
-
-#### 1. Install Required Packages
-
-```bash
-# Core packages
-sudo pacman -S hyprland waybar kitty zsh sddm ttf-ibm-plex \
-               grim slurp wl-clipboard pavucontrol \
-               network-manager-applet polkit-kde-agent \
-               qt5-wayland qt6-wayland
-
-# Install yay (AUR helper) if not installed
-git clone https://aur.archlinux.org/yay.git
-cd yay
-makepkg -si
-
-# AUR packages
-yay -S sddm-sugar-candy-git zsh-theme-powerlevel10k-git
-```
-
-#### 2. Install Dotfiles
-
-```bash
-# Backup existing configs
-mkdir -p ~/.config-backup
-cp -r ~/.config/hypr ~/.config-backup/ 2>/dev/null || true
-cp -r ~/.config/waybar ~/.config-backup/ 2>/dev/null || true
-cp ~/.zshrc ~/.config-backup/ 2>/dev/null || true
-
-# Copy new configs
-cp -r ~/dotfiles/hypr ~/.config/
-cp -r ~/dotfiles/waybar ~/.config/
-cp -r ~/dotfiles/kitty ~/.config/
-cp ~/dotfiles/zsh/.zshrc ~/
-
-# Copy scripts
-mkdir -p ~/hyprdots/scripts
-cp -r ~/dotfiles/scripts/* ~/hyprdots/scripts/
-chmod +x ~/hyprdots/scripts/**/*.sh
-```
-
-#### 3. Configure SDDM
-
-```bash
-# Enable SDDM
-sudo systemctl enable sddm
-
-# Configure theme
-sudo sddm --example-config > /tmp/sddm.conf
-sudo mv /tmp/sddm.conf /etc/sddm.conf
-sudo sed -i 's/^Current=.*/Current=sugar-candy/' /etc/sddm.conf
-
-# Copy theme customization
-sudo cp ~/dotfiles/sddm/theme.conf /usr/share/sddm/themes/sugar-candy/
-```
-
-#### 4. Setup Zsh
-
-```bash
-# Change default shell
-chsh -s $(which zsh)
-
-# Install plugins
-sudo pacman -S zsh-syntax-highlighting zsh-autosuggestions
-```
-
-#### 5. Reboot
-
-```bash
-sudo reboot
-```
-
-</details>
+Then reboot and pick **Hyprland** on the login screen.
 
 ---
 
 ## ⌨️ Keybindings
 
-### General
+Press **`SUPER + /`** (or `SUPER + F1`) to see every keybinding. The list is read live from Hyprland, so it's never out of date.
 
 | Keybinding | Action |
 |------------|--------|
-| `SUPER + Q` | Kill active window |
-| `SUPER + M` | Exit Hyprland |
-| `SUPER + V` | Toggle floating |
-| `SUPER + F` | Toggle fullscreen |
-| `SUPER + P` | Toggle pseudo-tiling |
-
-### Applications
-
-| Keybinding | Action |
-|------------|--------|
-| `SUPER + Return` | Launch terminal (Kitty) |
+| `SUPER + Return` | Terminal |
+| `SUPER + SPACE` | App launcher (rofi) |
+| `SUPER + W` | Browser |
 | `SUPER + E` | File manager |
-| `SUPER + R` | Application launcher |
-
-### Window Navigation
-
-| Keybinding | Action |
-|------------|--------|
+| `SUPER + T` | Code editor |
+| `SUPER + Q` | Close window |
+| `SUPER + F` | Toggle floating |
+| `ALT + F` | Toggle fullscreen |
+| `SUPER + ALT + SPACE` | Switch master / dwindle layout |
+| `SUPER + G` | Toggle game mode |
+| `SUPER + L` | Lock screen |
+| `SUPER + DELETE` | Exit Hyprland |
 | `SUPER + ←/↓/↑/→` | Move focus |
-| `SUPER + H/J/K/L` | Move focus (vim keys) |
 | `SUPER + SHIFT + ←/↓/↑/→` | Move window |
-| `SUPER + SHIFT + H/J/K/L` | Move window (vim keys) |
-
-### Workspaces
-
-| Keybinding | Action |
-|------------|--------|
-| `SUPER + 1-9` | Switch to workspace 1-9 |
-| `SUPER + SHIFT + 1-9` | Move window to workspace 1-9 |
-| `SUPER + Mouse Scroll` | Cycle through workspaces |
-
-### Master Layout
-
-| Keybinding | Action |
-|------------|--------|
-| `SUPER + I` | Increase master windows |
-| `SUPER + D` | Decrease master windows |
-
-### Screenshots
-
-| Keybinding | Action |
-|------------|--------|
-| `SUPER + SHIFT + S` | Screenshot region |
-| `Print` | Screenshot full screen |
+| `SUPER + 1-0` | Go to workspace 1-10 |
+| `SUPER + SHIFT + 1-0` | Move window to workspace 1-10 |
+| `SUPER + S` | Toggle scratchpad |
+| `Print` | Screenshot region |
+| `SUPER + P` | Screenshot region to clipboard |
 
 ---
 
 ## 🎨 Customization
 
-### Changing Colors
+All Hyprland settings are Lua files in `~/.config/hypr/config/`. Hyprland reloads them automatically when you save.
 
-#### Waybar Colors
-Edit `~/.config/waybar/style.css`:
+### Apps and Modifier Key
 
-```css
-/* Change workspace colors */
-#workspaces button.active {
-    color: #00ffff;  /* Change this to your preferred color */
-}
+Edit `config/variables.lua`:
 
-/* Change clock color */
-#clock {
-    color: #00ffff;  /* Main clock color */
-    border: 3px solid #00ffff;  /* Border color */
+```lua
+return {
+    mainMod  = "SUPER",
+    terminal = "kitty",
+    browser  = "zen-browser",
+    ...
 }
 ```
 
-#### Hyprland Border Colors
-Edit `~/.config/hypr/aesthetics.conf`:
+### Border Colors and Transparency
 
-```conf
-general {
-    col.active_border = rgba(00ffffff) rgba(ff00ffff) 45deg
-    col.inactive_border = rgba(1a1a1acc)
-}
+Edit `config/aesthetics.lua`:
+
+```lua
+general = {
+    col = {
+        active_border   = { colors = { "rgba(ff00ffff)", "rgba(ff1493ff)" }, angle = 45 },
+        inactive_border = "rgba(8b008baa)",
+    },
+},
+decoration = {
+    active_opacity   = 0.75,
+    inactive_opacity = 0.65,
+},
 ```
 
-### Adjusting Transparency
+### Monitors
 
-Edit `~/.config/hypr/aesthetics.conf`:
+Edit `config/monitors.lua`. Run `hyprctl monitors all` to see your monitor names:
 
-```conf
-decoration {
-    active_opacity = 0.9    # Active window opacity (0.0-1.0)
-    inactive_opacity = 0.8  # Inactive window opacity
-}
+```lua
+hl.monitor({ output = "DP-2", mode = "3440x1440@60", position = "0x1080", scale = 1 })
 ```
 
-### Changing Wallpaper
+### Wallpaper
 
 ```bash
-# Add your wallpaper
-cp /path/to/wallpaper.png ~/.config/hypr/
+# Switch to a different image
+~/.config/hypr/scripts/wallpaper.sh /path/to/wallpaper.png
 
-# Edit hyprland.conf
-exec-once = swaybg -i ~/.config/hypr/wallpaper.png
+# Or make it the new default (also used by the lock screen)
+cp /path/to/wallpaper.png ~/Pictures/Wallpapers/default.png
 ```
 
-### SDDM Theme Colors
+### Login Screen
 
-Edit `/usr/share/sddm/themes/sugar-candy/theme.conf`:
+The theme lives in `sddm/neon/`. Change colors in `theme.conf`, or replace `background.png`, then rerun `./scripts/install-sddm.sh`.
+Preview it without logging out:
 
-```conf
-MainColor="#00ffff"      # Primary color
-AccentColor="#ff00ff"    # Accent color
-BackgroundColor="#0a0a14" # Background
+```bash
+sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/neon
 ```
+
+### Waybar Colors
+
+Edit the `@define-color` lines at the top of `~/.config/waybar/style.css`, then restart Waybar.
 
 ---
 
 ## 🔧 Troubleshooting
 
+### Config errors
+
+Hyprland shows a red error bar for Lua errors. Each file in `config/` loads separately, so an error in one file doesn't break the others. Logs:
+
+```bash
+cat "$XDG_RUNTIME_DIR"/hypr/*/hyprland.log
+```
+
 ### Waybar Not Showing
 
 ```bash
-# Reload Waybar
-killall waybar && waybar &
-
-# Check for errors
-waybar 2>&1 | grep error
+killall waybar; waybar -c ~/.config/waybar/config.json -s ~/.config/waybar/style.css &
 ```
 
-### Hyprland Won't Start
+### Login Screen Not Applied
 
 ```bash
-# Check logs
-cat ~/.cache/hyprland/hyprland.log
-
-# Verify Hyprland installation
-hyprctl version
+cat /etc/sddm.conf.d/theme.conf   # should show Current=neon
 ```
 
-### SDDM Theme Not Applied
+### Waybar Scripts Not Working
 
 ```bash
-# Verify SDDM config
-cat /etc/sddm.conf | grep Current
-
-# Should show: Current=sugar-candy
-
-# Restart SDDM
-sudo systemctl restart sddm
+ls -l ~/hyprdots   # should point at your dotfiles clone
 ```
-
-### Custom Scripts Not Working
-
-```bash
-# Make scripts executable
-chmod +x ~/hyprdots/scripts/**/*.sh
-
-# Check script paths in Waybar config
-cat ~/.config/waybar/config.json | grep exec
-```
-
-### Monitor Configuration
-
-Edit `~/.config/hypr/hyprland.conf` for your specific monitors:
-
-```conf
-# Example multi-monitor setup
-monitor=DP-1,2560x1440@144,0x0,1
-monitor=DP-2,3440x1440@100,2560x0,1
-monitor=HDMI-A-1,1920x1080@60,6000x0,1
-```
-
----
-
-## 📚 Dependencies
-
-### Required Packages
-
-- `hyprland` - Dynamic tiling Wayland compositor
-- `waybar` - Highly customizable status bar
-- `kitty` - GPU-accelerated terminal emulator
-- `zsh` - Z shell
-- `sddm` - Display manager
-- `ttf-ibm-plex` - IBM Plex font family
-- `grim` - Screenshot utility
-- `slurp` - Region selection tool
-- `wl-clipboard` - Wayland clipboard utilities
-- `pavucontrol` - PulseAudio volume control
-- `network-manager-applet` - Network management
-- `polkit-kde-agent` - Authentication agent
-- `qt5-wayland` - Qt5 Wayland support
-- `qt6-wayland` - Qt6 Wayland support
-
-### AUR Packages
-
-- `sddm-sugar-candy-git` - SDDM theme
-- `zsh-theme-powerlevel10k-git` - Zsh theme (optional)
-
-### Optional Packages
-
-- `hyprpicker` - Color picker
-- `hyprshot` - Screenshot tool
-- `swaylock-effects` - Screen locker
-- `rofi-wayland` - Application launcher
-- `dunst` - Notification daemon
-- `btop` - System monitor
 
 ---
 
@@ -426,7 +310,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Hyprland](https://hyprland.org/) - Amazing Wayland compositor
 - [Waybar](https://github.com/Alexays/Waybar) - Customizable status bar
-- [Sugar Candy](https://github.com/Kangie/sddm-sugar-candy) - Beautiful SDDM theme
 - [IBM Plex](https://github.com/IBM/plex) - Excellent monospace font
 - The Hyprland community for inspiration
 

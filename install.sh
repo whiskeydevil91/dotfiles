@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 ################################################################################
 #                                                                              #
@@ -6,8 +7,21 @@
 #                          by whiskeydevil91                                  #
 #                                                                              #
 ################################################################################
+# Run from inside the cloned repo:
+#   ./install.sh
+#
+# Steps:
+#   1. Install packages from packages.txt (paru, bootstrapped if missing)
+#   2. Back up existing configs, then copy hypr, waybar and kitty to ~/.config
+#   3. Install the default wallpaper and .zshrc
+#   4. Link ~/hyprdots to this repo (Waybar scripts and update.sh live there)
+#   5. Install GPU drivers: Mesa/Vulkan on AMD (plus optional Blender HIP),
+#      or offer scripts/nvidia.sh on NVIDIA
+#   6. Optionally install the neon SDDM login screen
+################################################################################
 
-set -e  # Exit on error
+REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+BACKUP_DIR="$HOME/.config-backup-$(date +%Y%m%d_%H%M%S)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -16,251 +30,304 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Print functions
-print_info() {
-    echo -e "${CYAN}[INFO]${NC} $1"
-}
+print_info()    { echo -e "${CYAN}[INFO]${NC} $1"; }
+print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+print_error()   { echo -e "${RED}[ERROR]${NC} $1"; }
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+ask() {
+    local reply
+    read -r -p "$1 [y/N] " reply
+    [[ "$reply" =~ ^([yY]|yes|YES)$ ]]
 }
 
 # Banner
 echo -e "${CYAN}"
-cat << "EOF"
+cat << "BANNER"
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║        🌈  NEON HYPRLAND DOTFILES INSTALLER  🌈          ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
-EOF
+BANNER
 echo -e "${NC}"
 
-# Check if running on Arch-based system
-if ! command -v pacman &> /dev/null; then
-    print_error "This script is designed for Arch Linux and derivatives."
+# ------------------------------------------------------------
+# Sanity checks
+# ------------------------------------------------------------
+if [[ ! -f /etc/arch-release ]] || ! command -v pacman &>/dev/null; then
+    print_error "This script is designed for Arch Linux."
     exit 1
 fi
 
-# Check if yay is installed
-if ! command -v yay &> /dev/null; then
-    print_warning "yay AUR helper not found. Installing..."
-    sudo pacman -S --needed git base-devel
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    cd /tmp/yay
-    makepkg -si --noconfirm
-    cd -
-    print_success "yay installed!"
+if [[ $EUID -eq 0 ]]; then
+    print_error "Run this script as your normal user, not root. It uses sudo when needed."
+    exit 1
 fi
 
-# Backup existing configs
-backup_configs() {
-    print_info "Backing up existing configurations..."
-    
-    BACKUP_DIR="$HOME/.config-backup-$(date +%Y%m%d_%H%M%S)"
-    mkdir -p "$BACKUP_DIR"
-    
-    [ -d "$HOME/.config/hypr" ] && cp -r "$HOME/.config/hypr" "$BACKUP_DIR/"
-    [ -d "$HOME/.config/waybar" ] && cp -r "$HOME/.config/waybar" "$BACKUP_DIR/"
-    [ -d "$HOME/.config/kitty" ] && cp -r "$HOME/.config/kitty" "$BACKUP_DIR/"
-    [ -f "$HOME/.zshrc" ] && cp "$HOME/.zshrc" "$BACKUP_DIR/"
-    
-    print_success "Backup created at: $BACKUP_DIR"
+# ------------------------------------------------------------
+# 1. Packages
+# ------------------------------------------------------------
+install_paru() {
+    if command -v paru &>/dev/null; then
+        return
+    fi
+
+    print_info "Installing paru (AUR helper)..."
+    sudo pacman -S --needed --noconfirm git base-devel
+
+    local build_dir
+    build_dir="$(mktemp -d)"
+    git clone https://aur.archlinux.org/paru.git "$build_dir/paru"
+    (cd "$build_dir/paru" && makepkg -si --noconfirm)
+    rm -rf "$build_dir"
+
+    print_success "paru installed"
 }
 
-# Install packages
+enable_multilib() {
+    # Steam and the 32-bit gaming/NVIDIA libraries live in [multilib]
+    if grep -q '^\[multilib\]' /etc/pacman.conf; then
+        return
+    fi
+
+    print_info "Enabling the multilib repository (needed for Steam)..."
+    sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
+    sudo pacman -Syu --noconfirm
+    print_success "multilib enabled"
+}
+
 install_packages() {
-    print_info "Installing required packages..."
-    
-    # Core packages
-    PACKAGES=(
-        hyprland
-        waybar
-        kitty
-        zsh
-        sddm
-        ttf-ibm-plex
-        git
-        grim              # Screenshots
-        slurp             # Region select
-        wl-clipboard      # Clipboard
-        pavucontrol       # Audio control
-        network-manager-applet  # Network
-        polkit-kde-agent  # Authentication
-        qt5-wayland
-        qt6-wayland
-    )
-    
-    # AUR packages
-    AUR_PACKAGES=(
-        sddm-sugar-candy-git
-        zsh-theme-powerlevel10k-git
-    )
-    
-    print_info "Installing core packages..."
-    sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
-    
-    print_info "Installing AUR packages..."
-    yay -S --needed --noconfirm "${AUR_PACKAGES[@]}"
-    
-    print_success "All packages installed!"
-}
+    print_info "Installing packages from packages.txt..."
 
-# Install dotfiles
-install_dotfiles() {
-    print_info "Installing dotfiles..."
-    
-    DOTFILES_DIR="$HOME/dotfiles"
-    
-    # Create config directories
-    mkdir -p "$HOME/.config/hypr"
-    mkdir -p "$HOME/.config/waybar"
-    mkdir -p "$HOME/.config/kitty"
-    
-    # Copy Hyprland config
-    if [ -d "$DOTFILES_DIR/hypr" ]; then
-        cp -r "$DOTFILES_DIR/hypr/"* "$HOME/.config/hypr/"
-        print_success "Hyprland config installed"
-    else
-        print_warning "Hyprland config not found in dotfiles"
+    local packages
+    mapfile -t packages < <(grep -Ev '^\s*(#|$)' "$REPO_DIR/packages.txt")
+
+    if paru -S --needed --noconfirm "${packages[@]}"; then
+        print_success "All packages installed"
+        return
     fi
-    
-    # Copy Waybar config
-    if [ -d "$DOTFILES_DIR/waybar" ]; then
-        cp -r "$DOTFILES_DIR/waybar/"* "$HOME/.config/waybar/"
-        print_success "Waybar config installed"
+
+    # One bad package aborts the whole transaction; retry one by one
+    print_warning "Bulk install failed, retrying packages one at a time..."
+    local failed=()
+    for pkg in "${packages[@]}"; do
+        paru -S --needed --noconfirm "$pkg" || failed+=("$pkg")
+    done
+
+    if [[ ${#failed[@]} -gt 0 ]]; then
+        print_warning "These packages could not be installed: ${failed[*]}"
     else
-        print_warning "Waybar config not found in dotfiles"
-    fi
-    
-    # Copy Kitty config
-    if [ -d "$DOTFILES_DIR/kitty" ]; then
-        cp -r "$DOTFILES_DIR/kitty/"* "$HOME/.config/kitty/"
-        print_success "Kitty config installed"
-    else
-        print_warning "Kitty config not found in dotfiles"
-    fi
-    
-    # Copy zsh config
-    if [ -f "$DOTFILES_DIR/zsh/.zshrc" ]; then
-        cp "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
-        print_success "Zsh config installed"
-    else
-        print_warning "Zsh config not found in dotfiles"
-    fi
-    
-    # Copy scripts
-    if [ -d "$DOTFILES_DIR/scripts" ]; then
-        mkdir -p "$HOME/hyprdots/scripts"
-        cp -r "$DOTFILES_DIR/scripts/"* "$HOME/hyprdots/scripts/"
-        chmod +x "$HOME/hyprdots/scripts/"**/*.sh 2>/dev/null || true
-        print_success "Scripts installed"
+        print_success "All packages installed"
     fi
 }
 
-# Install SDDM theme
-install_sddm() {
-    print_info "Configuring SDDM..."
-    
-    # Enable SDDM
-    sudo systemctl enable sddm
-    
-    # Create/update SDDM config
-    if [ ! -f /etc/sddm.conf ]; then
-        print_info "Generating SDDM config..."
-        sudo sh -c 'sddm --example-config > /etc/sddm.conf'
-    fi
-    
-    # Set Sugar Candy theme
-    sudo sed -i 's/^Current=.*/Current=sugar-candy/' /etc/sddm.conf
-    
-    # Copy theme config if exists
-    if [ -f "$HOME/dotfiles/sddm/theme.conf" ]; then
-        sudo cp "$HOME/dotfiles/sddm/theme.conf" /usr/share/sddm/themes/sugar-candy/theme.conf
-        print_success "SDDM theme configured"
+# ------------------------------------------------------------
+# GPU drivers
+# ------------------------------------------------------------
+# version_at_least 6.15 6.14 → true when the first version is >= the second
+version_at_least() {
+    [[ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n 1)" == "$2" ]]
+}
+
+# CPU microcode: security and stability fixes the CPU loads at boot.
+# Arch's default mkinitcpio "microcode" hook picks it up automatically.
+install_microcode() {
+    local pkg=""
+    case "$(awk -F': ' '/vendor_id/ {print $2; exit}' /proc/cpuinfo)" in
+        AuthenticAMD) pkg=amd-ucode ;;
+        GenuineIntel) pkg=intel-ucode ;;
+    esac
+    [[ -n "$pkg" ]] || return 0
+
+    print_info "Installing CPU microcode ($pkg)..."
+    sudo pacman -S --needed --noconfirm "$pkg"
+    print_success "Microcode installed (active after reboot)"
+}
+
+detect_gpu() {
+    local gpus
+    gpus="$(lspci 2>/dev/null | grep -Ei 'vga|3d|display' || true)"
+
+    if grep -qi 'nvidia' <<<"$gpus"; then
+        echo nvidia
+    elif grep -Eqi '\b(amd|ati|radeon)\b|advanced micro devices' <<<"$gpus"; then
+        echo amd
     else
-        print_warning "SDDM theme.conf not found, using defaults"
+        echo other
     fi
 }
 
-# Setup Zsh
-setup_zsh() {
-    print_info "Setting up Zsh..."
-    
-    # Change default shell to zsh
-    if [ "$SHELL" != "$(which zsh)" ]; then
-        print_info "Changing default shell to Zsh..."
-        chsh -s $(which zsh)
-        print_success "Default shell changed to Zsh (will take effect on next login)"
-    fi
-    
-    # Install zsh plugins
-    print_info "Installing Zsh plugins..."
-    
-    # Syntax highlighting
-    if [ ! -d /usr/share/zsh/plugins/zsh-syntax-highlighting ]; then
-        sudo pacman -S --needed --noconfirm zsh-syntax-highlighting
-    fi
-    
-    # Autosuggestions
-    if [ ! -d /usr/share/zsh/plugins/zsh-autosuggestions ]; then
-        sudo pacman -S --needed --noconfirm zsh-autosuggestions
-    fi
-    
-    print_success "Zsh configured"
-}
+install_amd_drivers() {
+    print_info "AMD GPU detected, installing Mesa and Vulkan drivers..."
 
-# Post-install message
-post_install() {
-    echo ""
-    echo -e "${GREEN}═══════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}                 Installation Complete! 🎉                ${NC}"
-    echo -e "${GREEN}═══════════════════════════════════════════════════════════${NC}"
-    echo ""
-    print_info "Next steps:"
-    echo "  1. Log out and log back in (or reboot)"
-    echo "  2. Select 'Hyprland' from your login screen"
-    echo "  3. Enjoy your neon setup! 🌈"
-    echo ""
-    print_warning "Notes:"
-    echo "  • Your old configs are backed up in: $BACKUP_DIR"
-    echo "  • Zsh is now your default shell (takes effect on next login)"
-    echo "  • SDDM is enabled and will start on boot"
-    echo ""
-    print_info "Troubleshooting:"
-    echo "  • If Waybar doesn't show: killall waybar && waybar &"
-    echo "  • Check Hyprland logs: ~/.cache/hyprland/hyprland.log"
-    echo ""
-}
+    # Installed before Steam so it doesn't pick a different Vulkan driver.
+    # linux-firmware carries the GPU firmware newer Radeons need to boot.
+    sudo pacman -S --needed --noconfirm \
+        linux-firmware \
+        mesa lib32-mesa \
+        vulkan-radeon lib32-vulkan-radeon \
+        vulkan-icd-loader lib32-vulkan-icd-loader
+    print_success "AMD drivers installed"
 
-# Main installation flow
-main() {
-    print_info "Starting installation..."
-    echo ""
-    
-    # Ask for confirmation
-    read -p "This will install packages and replace configs. Continue? (y/N) " -n 1 -r
+    # Radeon RX 9000 (RDNA 4) cards need kernel 6.14+ and Mesa 25.1+
+    local kernel mesa
+    kernel="$(uname -r | cut -d. -f1,2)"
+    mesa="$(pacman -Q mesa | awk '{print $2}' | cut -d. -f1,2)"
+    if ! version_at_least "$kernel" 6.14; then
+        print_warning "Kernel $kernel is older than 6.14; RX 9000 cards may not work. Reboot after updating."
+    fi
+    if ! version_at_least "$mesa" 25.1; then
+        print_warning "Mesa $mesa is older than 25.1; games may run poorly on RX 9000 cards."
+    fi
+
     echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    if ask "Enable AMD GPU rendering in Blender (HIP, about 2 GB download)?"; then
+        sudo pacman -S --needed --noconfirm hip-runtime-amd
+        print_success "HIP installed: pick it in Blender → Preferences → System → Cycles Render Devices"
+        print_info "If your card isn't listed there, EEVEE still renders on the GPU; Cycles falls back to the CPU."
+    fi
+}
+
+# ------------------------------------------------------------
+# 2. Configs
+# ------------------------------------------------------------
+backup() {
+    local path="$1"
+    if [[ -e "$path" || -L "$path" ]]; then
+        mkdir -p "$BACKUP_DIR"
+        mv "$path" "$BACKUP_DIR/"
+        print_info "Backed up $path"
+    fi
+}
+
+install_configs() {
+    print_info "Installing configs..."
+    mkdir -p "$HOME/.config"
+
+    for cfg in hypr waybar kitty; do
+        backup "$HOME/.config/$cfg"
+        cp -r "$REPO_DIR/$cfg" "$HOME/.config/$cfg"
+        print_success "$cfg config installed"
+    done
+    chmod +x "$HOME/.config/hypr/scripts/"*.sh
+
+    backup "$HOME/.zshrc"
+    cp "$REPO_DIR/.zshrc" "$HOME/.zshrc"
+    print_success "Zsh config installed"
+}
+
+# ------------------------------------------------------------
+# 3. Wallpaper and user setup
+# ------------------------------------------------------------
+setup_user() {
+    print_info "Setting up home directories and wallpaper..."
+    mkdir -p "$HOME/Pictures/Wallpapers" "$HOME/Screenshots" "$HOME/.local/bin"
+
+    cp "$REPO_DIR/wallpapers/default.png" "$HOME/Pictures/Wallpapers/default.png"
+    print_success "Default wallpaper installed"
+
+    if command -v xdg-user-dirs-update &>/dev/null; then
+        xdg-user-dirs-update
+    fi
+
+    systemctl --user enable --now pipewire.service pipewire-pulse.service wireplumber.service || true
+
+    # GTK apps read these instead of GTK_THEME on some setups
+    if command -v gsettings &>/dev/null; then
+        gsettings set org.gnome.desktop.interface gtk-theme "Nordic-Darker" || true
+        gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" || true
+    fi
+
+    fc-cache -f >/dev/null || true
+
+    # gamemode needs the user in its group to raise game priority
+    if getent group gamemode >/dev/null; then
+        sudo usermod -aG gamemode "$USER"
+    fi
+}
+
+# ------------------------------------------------------------
+# 4. ~/hyprdots → this repo
+# ------------------------------------------------------------
+link_repo() {
+    local link="$HOME/hyprdots"
+
+    if [[ "$(readlink -f "$link" 2>/dev/null)" == "$REPO_DIR" ]]; then
+        return
+    fi
+
+    backup "$link"
+    ln -s "$REPO_DIR" "$link"
+    chmod +x "$REPO_DIR/scripts/"*.sh "$REPO_DIR/scripts/waybar/"*.sh
+    print_success "Linked ~/hyprdots to $REPO_DIR"
+}
+
+# ------------------------------------------------------------
+# 5. Shell
+# ------------------------------------------------------------
+setup_zsh() {
+    local zsh_path
+    zsh_path="$(command -v zsh || true)"
+
+    if [[ -n "$zsh_path" && "$SHELL" != "$zsh_path" ]]; then
+        print_info "Changing default shell to Zsh..."
+        chsh -s "$zsh_path"
+        print_success "Default shell changed to Zsh (takes effect on next login)"
+    fi
+}
+
+# ------------------------------------------------------------
+# Main
+# ------------------------------------------------------------
+main() {
+    if ! ask "This will install packages and replace your Hyprland, Waybar, Kitty and Zsh configs. Continue?"; then
         print_error "Installation cancelled."
         exit 1
     fi
-    
-    backup_configs
+
+    enable_multilib
+    sudo pacman -S --needed --noconfirm pciutils
+    install_microcode
+
+    local gpu
+    gpu="$(detect_gpu)"
+    if [[ "$gpu" == "amd" ]]; then
+        install_amd_drivers
+    fi
+
+    install_paru
     install_packages
-    install_dotfiles
-    install_sddm
+    install_configs
+    setup_user
+    link_repo
     setup_zsh
-    post_install
+
+    if [[ "$gpu" == "nvidia" ]]; then
+        echo
+        if ask "NVIDIA GPU detected. Install NVIDIA drivers?"; then
+            "$REPO_DIR/scripts/nvidia.sh"
+        fi
+    fi
+
+    echo
+    if ask "Install the neon SDDM login screen?"; then
+        "$REPO_DIR/scripts/install-sddm.sh"
+    fi
+
+    echo
+    echo -e "${GREEN}═══════════════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}                 Installation Complete! 🎉                ${NC}"
+    echo -e "${GREEN}═══════════════════════════════════════════════════════════${NC}"
+    echo
+    print_info "Next steps:"
+    echo "  1. Reboot"
+    echo "  2. Select 'Hyprland' on the login screen"
+    echo "  3. Press SUPER + / to see every keybinding"
+    echo
+    if [[ -d "$BACKUP_DIR" ]]; then
+        print_warning "Your old configs are backed up in: $BACKUP_DIR"
+    fi
 }
 
-# Run main function
 main

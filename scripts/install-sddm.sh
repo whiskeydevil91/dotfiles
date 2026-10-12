@@ -2,32 +2,38 @@
 set -euo pipefail
 
 # ------------------------------------------------------------
+# install-sddm.sh
+# Installs SDDM with the neon login theme from this repo.
+# ------------------------------------------------------------
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+THEME_SRC="$SCRIPT_DIR/../sddm/neon"
+THEME_DST="/usr/share/sddm/themes/neon"
+
+# ------------------------------------------------------------
 # Self-escalate via sudo (prompt only when needed)
 # ------------------------------------------------------------
 if [[ $EUID -ne 0 ]]; then
   echo "==> Elevation required for SDDM installation"
-  exec sudo "$0" "$@"
+  exec sudo "$SCRIPT_DIR/$(basename "$0")" "$@"
 fi
 
 echo "======================================"
-echo " Installing SDDM (Session Manager)"
+echo " Installing SDDM (neon theme)"
 echo "======================================"
 
 # ------------------------------------------------------------
-# Sanity check
+# Sanity checks
 # ------------------------------------------------------------
 if ! command -v pacman >/dev/null; then
   echo "ERROR: This script is intended for Arch Linux"
   exit 1
 fi
 
-# ------------------------------------------------------------
-# Determine real user and paths
-# ------------------------------------------------------------
-REAL_USER="${SUDO_USER:-$(whoami)}"
-REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
-
-echo "==> Configuring for user: $REAL_USER"
+if [[ ! -f "$THEME_SRC/Main.qml" ]]; then
+  echo "ERROR: Neon theme not found at $THEME_SRC"
+  exit 1
+fi
 
 # ------------------------------------------------------------
 # Install packages
@@ -35,10 +41,9 @@ echo "==> Configuring for user: $REAL_USER"
 echo "==> Installing SDDM and dependencies"
 pacman -S --needed --noconfirm \
   sddm \
-  qt6-wayland \
-  qt6-svg \
+  xorg-server \
   qt6-declarative \
-  qt6-5compat
+  ttf-ibm-plex
 
 # ------------------------------------------------------------
 # Disable other display managers (best-effort)
@@ -47,77 +52,26 @@ echo "==> Disabling other display managers (if present)"
 systemctl disable gdm lightdm greetd ly 2>/dev/null || true
 
 # ------------------------------------------------------------
-# Install custom SDDM theme: blackglass
+# Install the neon theme
 # ------------------------------------------------------------
-echo "==> Installing custom SDDM theme: blackglass"
-
-THEME_SRC="$REAL_HOME/hyprdots/assets/SDDM/blackglass"
-THEME_DST="/usr/share/sddm/themes/blackglass"
-THEME_NAME="blackglass"
-
-if [[ -d "$THEME_SRC" ]]; then
-  echo "==> Found custom theme at $THEME_SRC"
-
-  rm -rf "$THEME_DST"
-  cp -r "$THEME_SRC" "$THEME_DST"
-
-  if [[ -d "$THEME_DST" ]]; then
-    echo "==> Blackglass theme installed successfully"
-  else
-    echo "WARNING: Theme copy failed, falling back to breeze"
-    THEME_NAME="breeze"
-    pacman -S --needed --noconfirm qt6-svg
-  fi
-else
-  echo "WARNING: Custom theme not found at $THEME_SRC"
-  echo "==> Falling back to breeze theme"
-  THEME_NAME="breeze"
-  pacman -S --needed --noconfirm qt6-svg
-fi
+echo "==> Installing neon theme to $THEME_DST"
+rm -rf "$THEME_DST"
+cp -r "$THEME_SRC" "$THEME_DST"
 
 # ------------------------------------------------------------
-# Configure SDDM theme
+# Configure SDDM
 # ------------------------------------------------------------
-echo "==> Setting SDDM theme to: ${THEME_NAME}"
-
+echo "==> Setting SDDM theme to: neon"
 mkdir -p /etc/sddm.conf.d
 
-cat >/etc/sddm.conf.d/theme.conf <<EOF
+cat >/etc/sddm.conf.d/theme.conf <<CONF
 [Theme]
-Current=${THEME_NAME}
-EOF
+Current=neon
+CONF
 
-# ------------------------------------------------------------
-# Install Hyprland session file
-# ------------------------------------------------------------
-echo "==> Installing Hyprland Wayland session file"
-
-SESSION_SRC="$REAL_HOME/hyprdots/assets/SDDM/hyprland.desktop"
-SESSION_DST="/usr/share/wayland-sessions/hyprland.desktop"
-
-mkdir -p /usr/share/wayland-sessions
-
-if [[ -f "$SESSION_SRC" ]]; then
-  cp "$SESSION_SRC" "$SESSION_DST"
-  echo "==> Hyprland session file installed"
-else
-  echo "ERROR: Session file not found at $SESSION_SRC"
-  exit 1
-fi
-
-# ------------------------------------------------------------
-# Configure SDDM for Wayland
-# ------------------------------------------------------------
-echo "==> Configuring SDDM for Wayland sessions"
-
-cat >/etc/sddm.conf.d/wayland.conf <<EOF
-[General]
-DisplayServer=wayland
-GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
-
-[Wayland]
-CompositorCommand=kwin_wayland --no-lockscreen --no-global-shortcuts --locale1
-EOF
+# Older versions of this script ran the greeter under kwin_wayland,
+# which is not installed by these dotfiles. Use the default X11 greeter.
+rm -f /etc/sddm.conf.d/wayland.conf
 
 # ------------------------------------------------------------
 # Enable SDDM
@@ -131,45 +85,25 @@ systemctl enable sddm
 echo
 echo "==> Verifying installation..."
 
-# Check if sddm service exists
-if systemctl list-unit-files sddm.service &>/dev/null; then
-  echo "✓ SDDM service installed"
+if [[ -f "$THEME_DST/Main.qml" ]]; then
+  echo "✓ Neon theme installed"
 else
-  echo "✗ SDDM service not found"
+  echo "✗ ERROR: Neon theme missing from $THEME_DST"
   exit 1
 fi
 
-# Check if Hyprland is installed
-if command -v Hyprland >/dev/null; then
-  echo "✓ Hyprland installed"
-else
-  echo "✗ WARNING: Hyprland not found - install it first!"
-fi
-
-# Check theme
-if [[ -d "/usr/share/sddm/themes/${THEME_NAME}" ]]; then
-  echo "✓ Theme '${THEME_NAME}' installed"
-else
-  echo "✗ WARNING: Theme '${THEME_NAME}' not found"
-fi
-
-# Check session file
+# The Hyprland package ships its own session file
 if [[ -f /usr/share/wayland-sessions/hyprland.desktop ]]; then
-  echo "✓ Hyprland session file created"
+  echo "✓ Hyprland session available"
 else
-  echo "✗ ERROR: Hyprland session file missing"
+  echo "✗ WARNING: Hyprland session not found - install hyprland first!"
 fi
 
-# ------------------------------------------------------------
-# Done
-# ------------------------------------------------------------
 echo
 echo "======================================"
 echo " SDDM installation complete"
 echo "======================================"
 echo
-echo "Configuration summary:"
-echo "  Theme: ${THEME_NAME}"
-echo "  Display server: Wayland"
-echo "  Session: Hyprland"
+echo "Preview the theme without logging out:"
+echo "  sddm-greeter-qt6 --test-mode --theme $THEME_DST"
 echo
