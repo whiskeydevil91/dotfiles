@@ -1,0 +1,52 @@
+# ------------------------------------------------------------
+# Packages installed by install.sh (official repos + AUR, via paru)
+# One package per line. Lines starting with # are ignored.
+# ------------------------------------------------------------
+
+# Hyprland and its ecosystem
+hyprland
+hypridle
+hyprlock
+hyprpolkitagent
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+xwaylandvideobridge
+
+# Desktop
+waybar
+swaync
+swaybg
+rofi
+kitty
+thunar
+hyprshot
+
+# Clipboard, notifications, media, hardware
+wl-clipboard
+cliphist
+libnotify
+jq
+brightnessctl
+playerctl
+pipewire
+pipewire-pulse
+wireplumber
+pavucontrol
+network-manager-applet
+
+# Shell
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+spaceship-prompt
+
+# Fonts and theming
+ttf-ibm-plex
+ttf-nerd-fonts-symbols
+nordic-darker-theme
+
+# Apps used by keybindings
+zen-browser-bin
+zed
+yazi
+discord
