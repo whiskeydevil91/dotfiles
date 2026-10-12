@@ -53,6 +53,7 @@ Fullscreen windows (games, videos) pause the timer. Edit the timeouts in `hypr/h
 - **Memory** pill shows RAM in use
 - **Updates** pill shows how many updates are waiting (✓ when up to date); click it to update
 - Hover any pill for details: clock speed, VRAM, power draw, top processes
+- Works with AMD (edge + junction temps) and NVIDIA cards
 
 ### 🎮 **Gaming (Steam)**
 - Steam games are fully solid: no transparency, blur, shadow or dimming
@@ -118,7 +119,7 @@ dotfiles/
 ├── wallpapers/default.png    # Default desktop wallpaper
 ├── scripts/
 │   ├── install-sddm.sh       # Installs the neon login screen
-│   ├── nvidia.sh             # NVIDIA drivers + Hyprland env
+│   ├── nvidia.sh             # NVIDIA drivers + Hyprland env (NVIDIA only)
 │   ├── update.sh             # Pulls this repo and updates packages
 │   └── waybar/               # Waybar module scripts
 ├── packages.txt              # Everything install.sh installs
@@ -149,7 +150,10 @@ The installer:
 3. Copies the new configs into `~/.config`
 4. Installs the wallpaper to `~/Pictures/Wallpapers/default.png`
 5. Links `~/hyprdots` to the repo, where Waybar's scripts live
-6. Asks whether to install NVIDIA drivers and the neon SDDM login screen
+6. Detects your GPU:
+   - **AMD**: installs Mesa and the Vulkan drivers (64- and 32-bit, for Steam), and offers HIP so Blender can render on the GPU
+   - **NVIDIA**: offers `scripts/nvidia.sh`
+7. Asks whether to install the neon SDDM login screen
 
 Then reboot and pick **Hyprland** on the login screen.
 

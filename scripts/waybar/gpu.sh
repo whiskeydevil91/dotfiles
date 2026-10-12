@@ -48,16 +48,20 @@ for dev in /sys/class/drm/card[0-9]*/device; do
     [[ -f "$dev/gpu_busy_percent" ]] || continue
 
     UTIL=$(cat "$dev/gpu_busy_percent")
-    NAME=$(cat "$dev/product_name" 2>/dev/null || echo "AMD Radeon")
+    # product_name is missing on most consumer cards; ask lspci instead
+    NAME=$(cat "$dev/product_name" 2>/dev/null \
+        || lspci -s "$(basename "$(readlink -f "$dev")")" 2>/dev/null | sed 's/.*: //' \
+        || true)
+    NAME=${NAME:-AMD Radeon}
 
     HWMON=$(echo "$dev"/hwmon/hwmon* | awk '{print $1}')
     TEMP=""
     [[ -f "$HWMON/temp1_input" ]] && TEMP=$(( $(cat "$HWMON/temp1_input") / 1000 ))
     JUNCTION=""
     [[ -f "$HWMON/temp2_input" ]] && JUNCTION=$(( $(cat "$HWMON/temp2_input") / 1000 ))
-    POWER=""
+    POWER="n/a"
     for f in "$HWMON/power1_average" "$HWMON/power1_input"; do
-        [[ -f "$f" ]] && { POWER=$(( $(cat "$f") / 1000000 )); break; }
+        [[ -f "$f" ]] && { POWER="$(( $(cat "$f") / 1000000 )) W"; break; }
     done
 
     VRAM="n/a"
@@ -71,7 +75,7 @@ for dev in /sys/class/drm/card[0-9]*/device; do
 Usage:       ${UTIL}%
 Temperature: ${TEMP:-n/a}°C (junction ${JUNCTION:-n/a}°C)
 VRAM:        ${VRAM}
-Power:       ${POWER:-n/a} W"
+Power:       ${POWER}"
 
     TEXT="${UTIL}%"
     [[ -n "$TEMP" ]] && TEXT+=" ${TEMP}°C"

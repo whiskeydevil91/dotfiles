@@ -15,7 +15,9 @@ set -euo pipefail
 #   2. Back up existing configs, then copy hypr, waybar and kitty to ~/.config
 #   3. Install the default wallpaper and .zshrc
 #   4. Link ~/hyprdots to this repo (Waybar scripts and update.sh live there)
-#   5. Optionally install NVIDIA drivers and the neon SDDM login screen
+#   5. Install GPU drivers: Mesa/Vulkan on AMD (plus optional Blender HIP),
+#      or offer scripts/nvidia.sh on NVIDIA
+#   6. Optionally install the neon SDDM login screen
 ################################################################################
 
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -121,6 +123,39 @@ install_packages() {
 }
 
 # ------------------------------------------------------------
+# GPU drivers
+# ------------------------------------------------------------
+detect_gpu() {
+    local gpus
+    gpus="$(lspci 2>/dev/null | grep -Ei 'vga|3d|display' || true)"
+
+    if grep -qi 'nvidia' <<<"$gpus"; then
+        echo nvidia
+    elif grep -Eqi '\b(amd|ati|radeon)\b|advanced micro devices' <<<"$gpus"; then
+        echo amd
+    else
+        echo other
+    fi
+}
+
+install_amd_drivers() {
+    print_info "AMD GPU detected, installing Mesa and Vulkan drivers..."
+
+    # Installed before Steam so it doesn't pick a different Vulkan driver
+    sudo pacman -S --needed --noconfirm \
+        mesa lib32-mesa \
+        vulkan-radeon lib32-vulkan-radeon \
+        vulkan-icd-loader lib32-vulkan-icd-loader
+    print_success "AMD drivers installed"
+
+    echo
+    if ask "Enable AMD GPU rendering in Blender (HIP, about 2 GB download)?"; then
+        sudo pacman -S --needed --noconfirm hip-runtime-amd
+        print_success "HIP installed: pick it in Blender → Preferences → System → Cycles Render Devices"
+    fi
+}
+
+# ------------------------------------------------------------
 # 2. Configs
 # ------------------------------------------------------------
 backup() {
@@ -218,6 +253,14 @@ main() {
     fi
 
     enable_multilib
+    sudo pacman -S --needed --noconfirm pciutils
+
+    local gpu
+    gpu="$(detect_gpu)"
+    if [[ "$gpu" == "amd" ]]; then
+        install_amd_drivers
+    fi
+
     install_paru
     install_packages
     install_configs
@@ -225,9 +268,11 @@ main() {
     link_repo
     setup_zsh
 
-    echo
-    if ask "Install NVIDIA drivers?"; then
-        "$REPO_DIR/scripts/nvidia.sh"
+    if [[ "$gpu" == "nvidia" ]]; then
+        echo
+        if ask "NVIDIA GPU detected. Install NVIDIA drivers?"; then
+            "$REPO_DIR/scripts/nvidia.sh"
+        fi
     fi
 
     echo
